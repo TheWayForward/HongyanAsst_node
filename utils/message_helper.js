@@ -4,6 +4,7 @@ const timeout = "請求超時，請刷新重試！";
 const success = "操作成功！";
 const duplication = "內容重複！";
 const type_undefined = "未指定內容類型！";
+const token_expired = "令牌已过期！";
 
 // login
 const login_success_username = "登录成功！（类型：用户名）";
@@ -36,7 +37,8 @@ module.exports = {
     success: success,
     duplication: duplication,
     type_undefined: type_undefined,
-    
+    token_expired: token_expired,
+
     login_success_username: login_success_username,
     login_success_tel: login_success_tel,
     login_success_email: login_success_email,

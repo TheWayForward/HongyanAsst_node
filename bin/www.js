@@ -33,7 +33,7 @@ server.on("request", function (req, res) {
     console.log(req.headers);
     if (req.headers["auth-token"] !== Config.auth_token || req.headers["app-flag"] !== Config.app_flag) {
         console.log("false");
-        res.json({
+        res.send({
             code: 5000,
             msg: MessageHelper.login_unauthorized
         });
