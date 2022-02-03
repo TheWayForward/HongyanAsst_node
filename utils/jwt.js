@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const secret = "TrWyFowrd";
+const expire_time = 60 * 60 * 24 * 10;
 
 class Jwt {
     constructor(data) {
@@ -14,14 +15,12 @@ class Jwt {
     }
 
     verifyToken(req, res, next) {
-        const bearerHeader = req.headers.authorization;
-        if (typeof bearerHeader !== 'undefined') {
-            req.token = bearerHeader.split(' ')[1]
-            next();
-        } else {
-            res.status(401).send({
-                message: '请先登录'
-            });
+        let token = req.headers.token;
+        if (token) {
+            jwt.verify(token, secret, (err, decode) => {
+                if (err) return false;
+                else return true;
+            })
         }
     }
 }

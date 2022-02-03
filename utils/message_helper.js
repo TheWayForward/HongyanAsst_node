@@ -11,6 +11,7 @@ const login_success_username = "登录成功！（类型：用户名）";
 const login_success_tel = "登录成功！（类型：手机号码）";
 const login_success_email = "登录成功！（类型：email）";
 const login_failed = "您输入的信息有误，登录失败！";
+const login_need = "请先登录！";
 const login_unauthorized = "非校验登录方式！";
 const log_out_success = "登出成功！";
 const log_out_unauthorized = "非法登出操作！"
@@ -32,29 +33,31 @@ const image_url_duplication = "图片链接已存在！";
 
 
 module.exports = {
-    internal_error: internal_error,
-    timeout: timeout,
-    success: success,
-    duplication: duplication,
-    type_undefined: type_undefined,
-    token_expired: token_expired,
+    internal_error,
+    timeout,
+    success,
+    duplication,
+    type_undefined,
+    token_expired,
 
-    login_success_username: login_success_username,
-    login_success_tel: login_success_tel,
-    login_success_email: login_success_email,
-    login_failed: login_failed,
-    login_unauthorized: login_unauthorized,
-    log_out_success: log_out_success,
-    log_out_unauthorized: log_out_unauthorized,
+    login_success_username,
+    login_success_tel,
+    login_success_email,
+    login_failed,
+    login_unauthorized,
+    login_need,
 
-    image_url_upload_success: image_url_upload_success,
-    image_upload_success: image_upload_success,
+    log_out_success,
+    log_out_unauthorized,
 
-    user_register_duplication: user_register_duplication,
-    user_register_success: user_register_success,
+    image_url_upload_success,
+    image_upload_success,
 
-    device_unauthorized: device_unauthorized,
-    device_empty: device_empty,
+    user_register_duplication,
+    user_register_success,
 
-    image_url_duplication: image_url_duplication
+    device_unauthorized,
+    device_empty,
+
+    image_url_duplication
 }
