@@ -186,6 +186,12 @@ router.post("/register", (req, res) => {
 });
 
 router.post("/login", (req, res) => {
+    if (req.headers["auth-token"] !== Config.auth_token || req.headers["app-flag"] !== Config.app_flag) {
+        res.status(401).send({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
 
     let username = req.body.username;
     let password = req.body.password;
@@ -283,7 +289,42 @@ router.post("/upload_avatar", (req, res) => {
                 });
             }
             let path = "/" + files.file[0].path;
-            res.status(200).send({code: 200, message: MessageHelper.image_upload_success, path: path});
+            // save path to database
+            let id = fields.id[0];
+            db.query(SQL.sql_update_user_avatar(path, id), (err, result, fields) => {
+                if (err) {
+                    console.log("/upload_avatar error");
+                    res.status(500).send({
+                        code: 500,
+                        message: MessageHelper.internal_error
+                    });
+                } else {
+                    res.status(200).send({code: 200, message: MessageHelper.image_upload_success, path: path});
+                }
+            });
+        });
+    } else {
+        res.status(401).json({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
+});
+
+router.post("/get_homepage_data", (req, res) => {
+    if (Jwt.verifyToken(req)) {
+        let sql = `SELECT * FROM banner WHERE valid = 1; SELECT * FROM banner WHERE valid = 1;`;
+        db.query(sql, (err, result, fields) => {
+            if (err) {
+                console.log(err);
+                res.status(500).send({
+                    code: 500,
+                    message: MessageHelper.internal_error
+                });
+            } else {
+                console.log(result[0]);
+                res.status(200).send({code: 200, message: "success"});
+            }
         });
     } else {
         res.status(401).json({

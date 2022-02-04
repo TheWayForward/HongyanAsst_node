@@ -45,7 +45,7 @@ app.use(session({
     }
 }))
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '')));
 
 // project initial apis
 app.use("/api/v1", api_v1);
