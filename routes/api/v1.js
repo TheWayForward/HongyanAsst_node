@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../../database/database");
 const fs = require("fs");
 const path = require("path");
+const multiparty = require("multiparty");
 
 const Config = require("../../config");
 const Jwt = require('../../utils/jwt_helper');
@@ -22,7 +23,7 @@ router.get("/test", (req, res) => {
     } else {
         res.status(401).json({
             code: 401,
-            message: MessageHelper.login_need
+            message: MessageHelper.login_unauthorized
         });
     }
 });
@@ -118,14 +119,14 @@ router.post('/verify_phone_captcha', (req, res) => {
                 message: MessageHelper.internal_error
             });
         } else if (!result.length) {
-            res.status(204).send({
+            res.status(200).send({
                 code: 204,
                 message: MessageHelper.captcha_illegal
             });
         } else {
             if (TimeHelper.captcha_expire(result[0].timestamp)) {
                 // captcha expired
-                res.status(204).send({
+                res.status(200).send({
                     code: 204,
                     message: MessageHelper.captcha_illegal
                 });
@@ -138,8 +139,50 @@ router.post('/verify_phone_captcha', (req, res) => {
             }
         }
     });
+});
 
+router.post("/register", (req, res) => {
+    if (req.headers["auth-token"] !== Config.auth_token || req.headers["app-flag"] !== Config.app_flag) {
+        res.status(401).send({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
 
+    let nickname = req.body.nickname;
+    let password = req.body.password;
+    let tel = req.body.tel;
+    let email = req.body.email;
+    let from_client = req.body.from_client;
+
+    db.query(SQL.sql_get_table_count("user"), (err, result, fields) => {
+        if (err) {
+            console.log("/register error");
+            res.send({
+                code: 500,
+                message: MessageHelper.internal_error
+            });
+        } else {
+            let id = result[0]["count"] + 1;
+            let username = from_client + id;
+            let sql_params = [id, username, nickname, email, tel, password];
+            db.query(SQL.sql_insert_user, sql_params, (err, result, fields) => {
+                if (err) {
+                    console.log("/register error");
+                    console.log(err);
+                    res.status(200).send({
+                        code: 204,
+                        message: MessageHelper.user_register_duplication
+                    });
+                } else {
+                    res.status(200).send({
+                        code: 200,
+                        message: MessageHelper.user_register_success
+                    })
+                }
+            });
+        }
+    });
 });
 
 router.post("/login", (req, res) => {
@@ -224,6 +267,29 @@ router.post("/login", (req, res) => {
                 }
             });
             break;
+    }
+});
+
+router.post("/upload_avatar", (req, res) => {
+    if (Jwt.verifyToken(req)) {
+        let form = new multiparty.Form();
+        let URL = "images/avatar";
+        form.uploadDir = `public/${URL}`;
+        form.parse(req, function (err, fields, files) {
+            if (err) {
+                res.status(500).send({
+                    code: 500,
+                    message: MessageHelper.internal_error
+                });
+            }
+            let path = "/" + files.file[0].path;
+            res.status(200).send({code: 200, message: MessageHelper.image_upload_success, path: path});
+        });
+    } else {
+        res.status(401).json({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
     }
 });
 

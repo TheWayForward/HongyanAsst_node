@@ -16,6 +16,10 @@ const login_unauthorized = "校验失败！";
 const log_out_success = "登出成功！";
 const log_out_unauthorized = "非法登出操作！"
 
+// user register
+const user_register_duplication = "手机、email不可重复注册，请重试！";
+const user_register_success = "注册成功！";
+
 // captcha
 const captcha_sent = "验证码发送成功！";
 const captcha_send_exception = "验证码发送失败！"
@@ -25,10 +29,6 @@ const captcha_verified = "验证码校验成功！";
 // upload
 const image_url_upload_success = "图片链接上传成功！";
 const image_upload_success = "图片上传成功！";
-
-// user register
-const user_register_duplication = "用户名、手机或email不可重复注册，请重试！";
-const user_register_success = "注册成功！";
 
 // device
 const device_unauthorized = "非法获取设备信息！";
