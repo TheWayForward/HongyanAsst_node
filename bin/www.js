@@ -30,17 +30,6 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-// request header interceptor
-server.on("request", function (req, res) {
-    console.log(req.headers);
-    if (req.headers["auth-token"] !== Config.auth_token || req.headers["app-flag"] !== Config.app_flag) {
-        res.status(401).send({
-            code: 401,
-            msg: MessageHelper.login_unauthorized
-        });
-    }
-});
-
 /**
  * Normalize a port into a number, string, or false.
  */

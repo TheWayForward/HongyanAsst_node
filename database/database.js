@@ -6,7 +6,9 @@ const db = mysql.createConnection({
     user: config.user,
     password: config.password,
     database: config.database,
-    multipleStatements: true
+    multipleStatements: true,
+    // fix utc problems
+    dateStrings: true
 })
 
 db.connect();

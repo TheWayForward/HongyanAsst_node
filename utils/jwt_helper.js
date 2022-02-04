@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const jwt = require('jsonwebtoken');
+const jwt_helper = require('jsonwebtoken');
 const secret = "TrWyFowrd";
 const expire_time = 60 * 60 * 24 * 10;
 
@@ -10,18 +10,21 @@ class Jwt {
     }
 
     generateToken() {
-        let token = jwt.sign(this.data, secret);
+        let token = jwt_helper.sign(this.data, secret);
         return token;
     }
 
-    verifyToken(req, res, next) {
-        let token = req.headers.token;
+    static verifyToken(req) {
+        let token = req.headers["boarding-pass"];
         if (token) {
-            jwt.verify(token, secret, (err, decode) => {
-                if (err) return false;
+            return jwt_helper.verify(token, secret, (err, decode) => {
+                if (err) {
+                    return false;
+                }
                 else return true;
             })
         }
+        return false;
     }
 }
 
