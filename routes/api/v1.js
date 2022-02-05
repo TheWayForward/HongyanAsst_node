@@ -13,6 +13,8 @@ const Core = require("@alicloud/pop-core");
 const MessageHelper = require("../../utils/message_helper");
 const VerificationHelper = require("../../utils/verification_helper");
 const TimeHelper = require("../../utils/time_helper");
+const StringHelper = require("../../utils/string_helper");
+const EmailHelper = require("../../utils/email_helper");
 
 router.get("/test", (req, res) => {
     if (Jwt.verifyToken(req)) {
@@ -288,7 +290,7 @@ router.post("/upload_avatar", (req, res) => {
                     message: MessageHelper.internal_error
                 });
             }
-            let path = "/" + files.file[0].path;
+            let path = StringHelper.directory_revision("/" + files.file[0].path);
             // save path to database
             let id = fields.id[0];
             db.query(SQL.sql_update_user_avatar(path, id), (err, result, fields) => {
@@ -333,5 +335,19 @@ router.post("/get_homepage_data", (req, res) => {
         });
     }
 });
+
+router.post("/get_user_data", (req, res) => {
+    if (Jwt.verifyToken(req)) {
+        // get bicycle, event
+
+    } else {
+        res.status(401).json({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
+});
+
+router.post("/get_")
 
 module.exports = router;
