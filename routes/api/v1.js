@@ -212,7 +212,7 @@ router.post("/login", (req, res) => {
                 } else if (!result.length) {
                     res.status(204).send({
                         message: MessageHelper.login_failed,
-                        info: result[0]
+                        data: result[0]
                     });
                 } else {
                     let jwt = new Jwt(result[0].id);
@@ -220,7 +220,7 @@ router.post("/login", (req, res) => {
                         code: 200,
                         token: jwt.generateToken(),
                         message: MessageHelper.login_success_username,
-                        info: result[0]
+                        data: result[0]
                     });
                 }
             });
@@ -237,15 +237,16 @@ router.post("/login", (req, res) => {
                 } else if (!result.length) {
                     res.status(204).send({
                         message: MessageHelper.login_failed,
-                        info: result[0]
+                        data: result[0]
                     });
                 } else {
                     let jwt = new Jwt(result[0].id);
+                    console.log(result[0]);
                     res.status(200).send({
                         code: 200,
                         token: jwt.generateToken(),
                         message: MessageHelper.login_success_tel,
-                        info: result[0]
+                        data: result[0]
                     });
                 }
             });
@@ -262,7 +263,7 @@ router.post("/login", (req, res) => {
                 } else if (!result.length) {
                     res.status(204).send({
                         message: MessageHelper.login_failed,
-                        info: result[0]
+                        data: result[0]
                     });
                 } else {
                     let jwt = new Jwt(result[0].id);
@@ -270,7 +271,7 @@ router.post("/login", (req, res) => {
                         code: 200,
                         token: jwt.generateToken(),
                         message: MessageHelper.login_success_tel,
-                        info: result[0]
+                        data: result[0]
                     });
                 }
             });
@@ -336,10 +337,23 @@ router.post("/get_homepage_data", (req, res) => {
     }
 });
 
-router.post("/get_user_data", (req, res) => {
+router.post("/get_user_data_by_id", (req, res) => {
     if (Jwt.verifyToken(req)) {
-        // get bicycle, event
-
+        let id = req.body.id;
+        db.query(SQL.sql_get_by_id(id, "user"), (err, result, fields) => {
+            if (err) {
+                console.log("/get_user_data_by_id error");
+                res.status(500).send({
+                    code: 500,
+                    message: MessageHelper.internal_error
+                });
+            } else {
+                res.status(200).send({
+                    code: 200,
+                    data: result[0]
+                });
+            }
+        });
     } else {
         res.status(401).json({
             code: 401,

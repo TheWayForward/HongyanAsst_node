@@ -2,6 +2,8 @@ let sql_username_login = (username, password) => `SELECT * FROM user WHERE usern
 let sql_tel_login = (tel, password) => `SELECT * FROM user WHERE tel = "${tel}" AND password = "${password}" AND valid = 1`;
 let sql_email_login = (email, password) => `SELECT * FROM user WHERE email = "${email}" AND password = "${password}" AND valid = 1`;
 
+let sql_get_by_id = (id, table_name) => `SELECT * FROM ${table_name} WHERE id = ${id} AND valid = 1`;
+
 let sql_get_table_count = (table_name) => `SELECT COUNT(*) as count FROM ${table_name}`;
 
 let sql_insert_captcha = `INSERT INTO captcha (id, send_to, content, tel, email) VALUES (?,?,?,?,?)`;
@@ -13,6 +15,9 @@ module.exports = {
     sql_username_login,
     sql_tel_login,
     sql_email_login,
+
+    sql_get_by_id,
+
     sql_get_table_count,
 
     sql_insert_captcha,
