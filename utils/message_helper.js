@@ -10,7 +10,7 @@ const token_expired = "令牌已过期！";
 const login_success_username = "登录成功！（类型：用户名）";
 const login_success_tel = "登录成功！（类型：手机号码）";
 const login_success_email = "登录成功！（类型：email）";
-const login_failed = "您输入的信息有误，登录失败！";
+const login_failed = "用户名或密码错误，登录失败！";
 const login_need = "请先登录！";
 const login_unauthorized = "校验失败！";
 const log_out_success = "登出成功！";
@@ -25,6 +25,10 @@ const captcha_sent = "验证码发送成功！";
 const captcha_send_exception = "验证码发送失败！"
 const captcha_illegal = "验证码错误或验证码失效！";
 const captcha_verified = "验证码校验成功！";
+const captcha_unknown = "未知来源的验证码！";
+
+// update
+const update_success = "修改成功！";
 
 // upload
 const image_url_upload_success = "图片链接上传成功！";
@@ -57,9 +61,12 @@ module.exports = {
     captcha_send_exception,
     captcha_illegal,
     captcha_verified,
+    captcha_unknown,
 
     log_out_success,
     log_out_unauthorized,
+
+    update_success,
 
     image_url_upload_success,
     image_upload_success,

@@ -3,7 +3,8 @@ const router = express.Router();
 const db = require("../../database/database");
 const fs = require("fs");
 const path = require("path");
-const multiparty = require("multiparty");
+const Multiparty = require("multiparty");
+const NodeMailer = require("nodemailer");
 
 const Config = require("../../config");
 const Jwt = require('../../utils/jwt_helper');
@@ -15,6 +16,26 @@ const VerificationHelper = require("../../utils/verification_helper");
 const TimeHelper = require("../../utils/time_helper");
 const StringHelper = require("../../utils/string_helper");
 const EmailHelper = require("../../utils/email_helper");
+
+var mailer = NodeMailer.createTransport({
+    host: "smtp.qq.com",
+    service: "qq",
+    secure: true,
+    auth: {
+        user: "951947409@qq.com",
+        pass: "vnybljqsrnxybdff"
+    }
+})
+
+// mail template
+var mail_options = (email_to, subject, html) => {
+    return {
+        from: Config.mail_account,
+        to: email_to,
+        subject: subject,
+        html: html
+    }
+}
 
 router.get("/test", (req, res) => {
     if (Jwt.verifyToken(req)) {
@@ -67,7 +88,6 @@ router.post("/send_phone_captcha", async (req, res) => {
                     message: MessageHelper.internal_error
                 });
             } else {
-                console.log(result);
                 let id = result[0]["count"] + 1;
                 let send_to = "phone";
                 let content = code;
@@ -91,30 +111,97 @@ router.post("/send_phone_captcha", async (req, res) => {
             }
         })
     }, (e) => {
-        res.status(502).send({
-            code: 502,
+        res.status(500).send({
+            code: 500,
             message: MessageHelper.captcha_send_exception
         });
     })
 
 });
 
-router.post('/verify_phone_captcha', (req, res) => {
+router.post("/send_email_captcha", async (req, res) => {
     if (req.headers["auth-token"] !== Config.auth_token || req.headers["app-flag"] !== Config.app_flag) {
         res.status(401).send({
             code: 401,
             message: MessageHelper.login_unauthorized
         });
     }
+    let email = req.body.email;
+    let code = VerificationHelper.generate_digit_captcha();
+    let mail_template = EmailHelper.captcha_email(code);
+    let response = await mailer.sendMail(mail_options(email, mail_template.subject, mail_template.content)).then((result) => {
+        if (result.accepted.length !== 0) {
+            db.query(SQL.sql_get_table_count("captcha"), (err, result, fields) => {
+                if (err) {
+                    console.log("/send_email_captcha error");
+                    res.status(500).send({
+                        code: 500,
+                        message: MessageHelper.internal_error
+                    });
+                } else {
+                    let id = result[0]["count"] + 1;
+                    let tel = "";
+                    let send_to = "email";
+                    let content = code;
+                    let sql_params = [id, send_to, content, tel, email];
+                    db.query(SQL.sql_insert_captcha, sql_params, (err, result, fields) => {
+                        if (err) {
+                            console.log("/send_email_captcha error");
+                            console.log(err);
+                            res.status(500).send({
+                                code: 500,
+                                message: MessageHelper.internal_error
+                            });
+                        } else {
+                            res.status(200).send({
+                                code: 200,
+                                message: MessageHelper.captcha_sent
+                            });
+                        }
+                    });
+                }
+            })
+        } else {
+            res.status(500).send({
+                code: 500,
+                message: MessageHelper.captcha_send_exception
+            });
+        }
+    }).catch((e) => {
+        res.status(500).send({
+            code: 500,
+            message: MessageHelper.captcha_send_exception
+        });
+    });
 
+});
+
+router.post('/verify_captcha', (req, res) => {
+    if (req.headers["auth-token"] !== Config.auth_token || req.headers["app-flag"] !== Config.app_flag) {
+        res.status(401).send({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
     let send_to = req.body.send_to;
     let tel = req.body.tel;
+    let email = req.body.email;
     let content = req.body.content;
+    let sql = "";
 
-    let sql = `SELECT * FROM captcha WHERE send_to = "${send_to}" AND tel = "${tel}" AND content = "${content}" ORDER BY timestamp DESC`;
+    if (send_to === "phone") {
+        sql = SQL.sql_select_phone_captcha(tel, content);
+    } else if (send_to === "email") {
+        sql = SQL.sql_select_email_captcha(email, content);
+    } else {
+        res.status(200).send({
+            code: 204,
+            message: MessageHelper.captcha_unknown
+        });
+    }
     db.query(sql, (err, result, fields) => {
         if (err) {
-            console.log("vefify_phone_captcha error");
+            console.log("vefify_captcha error");
             console.log(err);
             res.status(500).send({
                 code: 500,
@@ -136,7 +223,7 @@ router.post('/verify_phone_captcha', (req, res) => {
                 // verified
                 res.status(200).send({
                     code: 200,
-                    message: MessageHelper.captcha_verified,
+                    message: MessageHelper.captcha_verified
                 });
             }
         }
@@ -235,7 +322,8 @@ router.post("/login", (req, res) => {
                         message: MessageHelper.internal_error
                     });
                 } else if (!result.length) {
-                    res.status(204).send({
+                    res.status(200).send({
+                        code: 204,
                         message: MessageHelper.login_failed,
                         data: result[0]
                     });
@@ -281,7 +369,7 @@ router.post("/login", (req, res) => {
 
 router.post("/upload_avatar", (req, res) => {
     if (Jwt.verifyToken(req)) {
-        let form = new multiparty.Form();
+        let form = new Multiparty.Form();
         let URL = "images/avatar";
         form.uploadDir = `public/${URL}`;
         form.parse(req, function (err, fields, files) {
@@ -362,6 +450,54 @@ router.post("/get_user_data_by_id", (req, res) => {
     }
 });
 
-router.post("/get_")
+router.post("/update_user_data", (req, res) => {
+    if (Jwt.verifyToken(req)) {
+        let id = req.body.id;
+        let detail = req.body.tel;
+        let nickname = req.body.nickname;
+        let address = req.body.address;
+        let sql = `UPDATE user SET detail = "${detail}", nickname = "${nickname}", address = "${address}" WHERE user.id = ${id}`;
+        db.query(sql, (err, result, fields) => {
+            if (err) {
+                res.status(500).send({
+                    code: 500,
+                    message: MessageHelper.internal_error
+                });
+            } else {
+                res.status(200).send({
+                    code: 200,
+                    message: MessageHelper.update_success
+                });
+            }
+        });
+    } else {
+        res.status(401).json({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
+});
+
+router.post("/update_user_email", (req, res) => {
+    if (Jwt.verifyToken(req)) {
+
+    } else {
+        res.status(401).json({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
+});
+
+router.post("update_user_tel", (req, res) => {
+    if (Jwt.verifyToken(req)) {
+
+    } else {
+        res.status(401).json({
+            code: 401,
+            message: MessageHelper.login_unauthorized
+        });
+    }
+});
 
 module.exports = router;
