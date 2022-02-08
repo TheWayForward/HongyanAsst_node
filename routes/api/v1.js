@@ -18,13 +18,10 @@ const StringHelper = require("../../utils/string_helper");
 const EmailHelper = require("../../utils/email_helper");
 
 var mailer = NodeMailer.createTransport({
-    host: "smtp.qq.com",
-    service: "qq",
-    secure: true,
-    auth: {
-        user: "951947409@qq.com",
-        pass: "vnybljqsrnxybdff"
-    }
+    host: Config.mailer_host,
+    service: Config.mailer_secure,
+    secure: Config.mailer_secure,
+    auth: Config.mailer_auth
 })
 
 // mail template
@@ -61,20 +58,9 @@ router.post("/send_phone_captcha", async (req, res) => {
     let tel = req.body.tel;
     let code = VerificationHelper.generate_digit_captcha();
     let vcode = `{"code":"${code}"}`;
-    let client = new Core({
-        accessKeyId: 'LTAI4GDDJ9d8PSMJ1xsV3HQF',
-        accessKeySecret: 'WhyuhEltyQHDi1HnGnbuioktjzLmOm',
-        endpoint: 'https://dysmsapi.aliyuncs.com',
-        apiVersion: '2017-05-25'
-    });
+    let client = new Core(Config.ali_core_params);
 
-    let vcode_params = {
-        "RegionId": "cn-hangzhou",
-        "PhoneNumbers": tel,
-        "SignName": "北邮鸿雁车协",
-        "TemplateCode": "SMS_209815001",
-        "TemplateParam": vcode
-    };
+    let vcode_params = Config.tel_vcode_params(tel, vcode);
 
     let response = await client.request('SendSms', vcode_params, {
         method: 'POST'
